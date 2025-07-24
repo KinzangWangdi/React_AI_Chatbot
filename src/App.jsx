@@ -1,15 +1,13 @@
 import React, { useState } from 'react'
 import styles from './App.module.css'
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { Assistant } from './assistants/openai'
 import { Chat } from './components/chat/chat'
 import { Controls } from './components/controls/controls'
 
-const googleai = new GoogleGenerativeAI(import.meta.env.VITE_GOGGLE_AI_API_KEY);
-const gemini = googleai.getGenerativeModel({ model: "gemini-1.5-flash" });
-const chat = gemini.startChat({ history: [] });
 
 
 function App() {
+  const assistant = new Assistant();
 
   const [Messages, setMessages] = useState([])
 
@@ -20,8 +18,9 @@ function App() {
   async function HandleContentSend(content) {
     addMessage({ content, role: "user" });
     try {
-      const result = await chat.sendMessage(content);
-      addMessage({ content: result.response.text(), role: "assistant" });
+      const result = await assistant.chat(content, Messages);
+
+      addMessage({ content: result, role: "assistant" });
     } catch (error) {
       addMessage({
         content: "Sorry, I couldn't process your request. Please try again!",
@@ -29,21 +28,22 @@ function App() {
       });
     }
   }
-  
+
+
 
   return (
     <div className={styles.App}>
       <header className={styles.Header}>
-        <img className={styles.Logo} src="/chat-bot.png"/>
+        <img className={styles.Logo} src="/chat-bot.png" />
         <h2 className={styles.Title}>AI Chatbot</h2>
       </header>
       <div className={styles.ChatContainer}>
-        <Chat messages={Messages}/>
+        <Chat messages={Messages} />
       </div>
-      <Controls onSend={HandleContentSend}/>
-    
+      <Controls onSend={HandleContentSend} />
+
     </div>
-    
+
   )
 
 }
