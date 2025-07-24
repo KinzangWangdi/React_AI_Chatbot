@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import styles from './App.module.css'
-import { Assistant } from './assistants/openai'
+import { Loader } from './components/loader/loader'
+import { Assistant } from './assistants/googleai'
 import { Chat } from './components/chat/chat'
 import { Controls } from './components/controls/controls'
 
@@ -10,6 +11,7 @@ function App() {
   const assistant = new Assistant();
 
   const [Messages, setMessages] = useState([])
+  const [loading, setLoading] = useState(false);
 
   function addMessage(message) {
     setMessages((prevMessages) => [...prevMessages, message]);
@@ -17,8 +19,9 @@ function App() {
 
   async function HandleContentSend(content) {
     addMessage({ content, role: "user" });
+    setLoading(true);
     try {
-      const result = await assistant.chat(content, Messages);
+      const result = await assistant.chat(content); 
 
       addMessage({ content: result, role: "assistant" });
     } catch (error) {
@@ -26,6 +29,8 @@ function App() {
         content: "Sorry, I couldn't process your request. Please try again!",
         role: "system",
       });
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -33,6 +38,7 @@ function App() {
 
   return (
     <div className={styles.App}>
+      {loading && <Loader />}
       <header className={styles.Header}>
         <img className={styles.Logo} src="/chat-bot.png" />
         <h2 className={styles.Title}>AI Chatbot</h2>
@@ -40,7 +46,7 @@ function App() {
       <div className={styles.ChatContainer}>
         <Chat messages={Messages} />
       </div>
-      <Controls onSend={HandleContentSend} />
+      <Controls isDisabled = {loading} onSend={HandleContentSend} />
 
     </div>
 

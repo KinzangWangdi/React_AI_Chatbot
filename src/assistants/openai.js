@@ -13,26 +13,15 @@ export class Assistant {
   }
 
   async chat(content, history) {
-    const messages = [...history, { role: "user", content }];
-    let attempt = 0;
-    const maxRetries = 3;
+    try {
+      const result = await openai.chat.completions.create({
+        model: this.#model,
+        messages: [...history, { content, role: "user" }],
+      });
 
-    while (attempt < maxRetries) {
-      try {
-        const result = await openai.chat.completions.create({
-          model: this.#model,
-          messages,
-        });
-        return result.choices[0].message.content;
-      } catch (error) {
-        if (error.status === 429 && attempt < maxRetries - 1) {
-          const wait = 1000 * Math.pow(2, attempt); // Exponential backoff
-          await new Promise((res) => setTimeout(res, wait));
-          attempt++;
-        } else {
-          throw error;
-        }
-      }
+      return result.choices[0].message.content;
+    } catch (error) {
+      throw error;
     }
   }
 }
